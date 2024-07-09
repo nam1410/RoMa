@@ -20,7 +20,7 @@ class GeometricSequential:
                 )
         return (
             warp_perspective(
-                x, M, dsize=(h, w), mode=mode, align_corners=self.align_corners
+                x, M, dsize=(h, w), mode=mode, align_corners=self.align_corners #ngurupr1: x-input image (b,c,h,w), M - transform matrix (b,3,3), dsize = output image size
             ),
             M,
         )
@@ -38,9 +38,9 @@ class RandomPerspective(K.RandomPerspective):
             self.distortion_scale, device=self._device, dtype=self._dtype
         )
         return self.random_perspective_generator(
-            batch_shape[0],
-            batch_shape[-2],
-            batch_shape[-1],
+            batch_shape[0], #ngurupr1: b
+            batch_shape[-2], #ngurupr1: h
+            batch_shape[-1], #ngurupr1: w
             distortion_scale,
             self.same_on_batch,
             self.device,
@@ -109,7 +109,7 @@ class RandomErasing:
     def __init__(self, p = 0., scale = 0.) -> None:
         self.p = p
         self.scale = scale
-        self.random_eraser = K.RandomErasing(scale = (0.02, scale), p = p)
+        self.random_eraser = K.RandomErasing(scale = (0.02, scale), p = p) #ngurupr1: scale - area erased opposed to original image, p - probability of random erasing
     def __call__(self, image, depth):
         if self.p > 0:
             image = self.random_eraser(image)
