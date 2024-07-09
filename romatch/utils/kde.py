@@ -10,5 +10,5 @@ def kde(x, std = 0.1, half = True, down = None):
         scores = (-torch.cdist(x,x[::down])**2/(2*std**2)).exp()
     else:
         scores = (-torch.cdist(x,x)**2/(2*std**2)).exp()
-    density = scores.sum(dim=-1)
+    density = scores.sum(dim=-1) #pdf?
     return density
