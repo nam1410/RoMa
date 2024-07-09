@@ -4,13 +4,13 @@ import torch.nn.functional as F
 def local_correlation(
     feature0,
     feature1,
-    local_radius,
+    local_radius, #ngurupr1: radius of the neighbourhood
     padding_mode="zeros",
-    flow = None,
+    flow = None, #ngurupr1: for non-aligned features
     sample_mode = "bilinear",
 ):
     r = local_radius
-    K = (2*r+1)**2 # kxk grid around the predicted coordinate
+    K = (2*r+1)**2 #ngurupr1: kxk grid around the predicted coordinate
     B, c, h, w = feature0.size()
     corr = torch.empty((B,K,h,w), device = feature0.device, dtype=feature0.dtype)
     if flow is None:
@@ -27,6 +27,7 @@ def local_correlation(
         ].expand(B, h, w, 2)
     else:
         coords = flow.permute(0,2,3,1) # If using flow, sample around flow target.
+    #ngurupr1: relative position in the neighbourhood
     local_window = torch.meshgrid(
                 (
                     torch.linspace(-2*local_radius/h, 2*local_radius/h, 2*r+1, device=feature0.device),
@@ -37,12 +38,12 @@ def local_correlation(
     local_window = torch.stack((local_window[1], local_window[0]), dim=-1)[
             None
         ].expand(1, 2*r+1, 2*r+1, 2).reshape(1, (2*r+1)**2, 2)
-    for _ in range(B):
+    for _ in range(B): #ngurupr1:for every batch
         with torch.no_grad():
-            local_window_coords = (coords[_,:,:,None]+local_window[:,None,None]).reshape(1,h,w*(2*r+1)**2,2)
+            local_window_coords = (coords[_,:,:,None]+local_window[:,None,None]).reshape(1,h,w*(2*r+1)**2,2) #local window added as an offset to the coordinates and reshaped to fit in the grid requirements
             window_feature = F.grid_sample(
                 feature1[_:_+1], local_window_coords, padding_mode=padding_mode, align_corners=False, mode = sample_mode, #
-            )
+            ) #ngurupr1:x - (n,c,h_in,w_in); grid_size - (n,h_out,w_out,2); window - (n,c,h_out,w_out); padding if grid is outside [-1,1]
             window_feature = window_feature.reshape(c,h,w,(2*r+1)**2)
         corr[_] = (feature0[_,...,None]/(c**.5)*window_feature).sum(dim=0).permute(2,0,1)
     return corr
