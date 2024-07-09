@@ -10,7 +10,7 @@ def local_correlation(
     sample_mode = "bilinear",
 ):
     r = local_radius
-    K = (2*r+1)**2
+    K = (2*r+1)**2 # kxk grid around the predicted coordinate
     B, c, h, w = feature0.size()
     corr = torch.empty((B,K,h,w), device = feature0.device, dtype=feature0.dtype)
     if flow is None:
